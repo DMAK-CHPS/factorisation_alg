@@ -89,7 +89,11 @@ void master(int rang, int size)
 
 
 	rand_matrix(A);
+	fprintf(stderr, "Matrice A:\n");
 	print_matrix(A);
+	
+	fprintf(stderr, "Matrice R:\n");
+	print_matrix(R);
 
 	for(size_t i = 0; i < N; i++){
 		// Travail pour U
@@ -136,20 +140,21 @@ void master(int rang, int size)
 	}
 
 	fprintf(stderr, "\n");
-
-	print_matrix(U);
-
+	
+	fprintf(stderr, "Matrice L:\n");
 	print_matrix(L);
-
+	fprintf(stderr, "Matrice U:\n");
+	print_matrix(U);
 	mult_matrix(L,U,R);
-
+	fprintf(stderr, "Matrice A:\n");
 	print_matrix(A);
-
+	fprintf(stderr, "Matrice R = L*U:\n");
 	print_matrix(R);
 
 	free_matrix(A);
 	free_matrix(L);
 	free_matrix(U);
+	free_matrix(R);
 
 	free(data);
 }
@@ -226,7 +231,7 @@ void slave(int rang, int size)
 
 			compute_U(&res, data);
 
-			print_data(data, rang, status.MPI_TAG);
+			//print_data(data, rang, status.MPI_TAG);
 
 			//sleep(rand()%2+1);			
 		
@@ -241,7 +246,7 @@ void slave(int rang, int size)
 
 			compute_L(&res, data);
 
-			print_data(data, rang, status.MPI_TAG);
+			//print_data(data, rang, status.MPI_TAG);
 
 			//sleep(rand()%2+1);
 

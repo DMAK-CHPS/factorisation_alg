@@ -20,11 +20,20 @@
 #define print_matrix(_M)																												\
 	for(size_t i = 0; i < _M.n; i++){									\
 		for(size_t j = 0; j < _M.m; j++){								\
-			printf("%lf ", (double)at_i_j(_M, i, j));					\
+			printf("%.1lf\t", (double)at_i_j(_M, i, j));				\
 		}																\
 		printf("\n");													\
 	}																	\
 	printf("\n");
+
+
+#define rand_matrix(_M)																												\
+	for(size_t i = 0; i < _M.n; i++){									\
+		for(size_t j = 0; j < _M.m; j++){								\
+			at_i_j(_M, i, j) = rand()%100+1;							\
+		}																\
+	}																	\
+
 
 #define at_i_j(_M, _i, _j)				(_M.matrix[(_i * _M.m) + _j])
 
