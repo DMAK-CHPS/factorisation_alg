@@ -36,8 +36,6 @@ int choix_pivot(float **A, float *b, int n, int it)
   for(int i = it + 1; i < n; i++)
     if(fabsf(A[i][it]) > fabsf(A[i_piv][it]))
       i_piv = i;
-
-  printf("\npivot : %f\n", A[i_piv][it]);
   
   //on permute les lignes
   //     on sauvegarde la ligne du pivot
@@ -56,7 +54,7 @@ int choix_pivot(float **A, float *b, int n, int it)
   b[it] = tmp[n-it+1];
 
   free(tmp);
-  printf("pivot ret: %f\n", A[it][it]);
+  printf("pivot : %f\n", A[it][it]);
   return A[it][it];
 };
 
@@ -132,12 +130,29 @@ int main(int argc, char **argv)
   //gauss(A, b, n);
   gauss_choix_pivot(A, b, n);
 
+  printf("\n");
   for(int i = 0; i < n; i++)
     {
       for(int j = 0; j < n; j++)
       	printf("%f ", A[i][j]);
       printf("\n");
     }
+
+  float *X = malloc(sizeof(float) * n);
+ 
+  X[n-1] = b[n-1]/A[n-1][n-1];
+  for(int i = n-2; i >= 0; i--)
+    {
+      float sum = 0;
+      for(int j = n-1; j > i; j--)
+	sum += A[i][j] * X[j];
+      X[i] = (b[i] - sum); // on ne divise pas par A[i][i] car = 1
+    }
+
+  printf("\n");
+  for(int i = 0; i < n; i++)
+    printf("X[%d] = %f\n", i, X[i]);
+  printf("\n");
   
   return 0;
 };
