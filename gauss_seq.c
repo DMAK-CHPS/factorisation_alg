@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 void gauss(float **A, float *b, int n)
 {
@@ -9,7 +10,8 @@ void gauss(float **A, float *b, int n)
       float pivot = A[i][i];
 
       //on calcul notre nouvelle ligne
-      for(int j = 0; j < n; j++)
+      A[i][i] = 1.;
+      for(int j = i+1; j < n; j++)
 	  A[i][j] /= pivot;
       b[i] /= pivot;
 
@@ -17,9 +19,10 @@ void gauss(float **A, float *b, int n)
       for(int j = i+1; j < n; j++)
 	{
 	  float coeff = A[j][i];
-	  for(int k = i; k < n; k++)
+	  A[j][i] = 0.;
+	  for(int k = i+1; k < n; k++)
 	    A[j][k] -= coeff*A[i][k];
-	  b[j] -= b[i];
+	  b[j] -= coeff*b[i];
 	}
     }
 
@@ -31,7 +34,7 @@ int choix_pivot(float **A, float *b, int n, int it)
   //on trouve le pivot en choisissant le plus grand
   int i_piv = it;
   for(int i = it + 1; i < n; i++)
-    if(A[i][it] > A[i_piv][it])
+    if(fabsf(A[i][it]) > fabsf(A[i_piv][it]))
       i_piv = i;
 
   printf("\npivot : %f\n", A[i_piv][it]);
@@ -64,7 +67,8 @@ void gauss_choix_pivot(float **A, float *b, int n)
       float pivot = choix_pivot(A, b, n, i);
       
       //on calcul notre nouvelle ligne
-      for(int j = 0; j < n; j++)
+      A[i][i] = 1.;
+      for(int j = i+1; j < n; j++)
 	  A[i][j] /= pivot;
       b[i] /= pivot;
 
@@ -72,9 +76,10 @@ void gauss_choix_pivot(float **A, float *b, int n)
       for(int j = i+1; j < n; j++)
 	{
 	  float coeff = A[j][i];
-	  for(int k = i; k < n; k++)
+	  A[j][i] = 0.;
+	  for(int k = i+1; k < n; k++)
 	    A[j][k] -= coeff*A[i][k];
-	  b[j] -= b[i];
+	  b[j] -= coeff*b[i];
 	}
     }
 
