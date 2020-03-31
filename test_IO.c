@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-*/
 
 	// test de get_column //
 	// allocation des ressources necessaires
@@ -97,8 +96,6 @@ int main(int argc, char *argv[])
 			}	
 		}
 	}
-
-/*	
 
 	// test de get_case //
 	// allocation des ressources necessaires
@@ -119,7 +116,6 @@ int main(int argc, char *argv[])
 
 	// fermeture du ficher
 	MPI_File_close(&f);
-	
 
 	MPI_Finalize();
 
