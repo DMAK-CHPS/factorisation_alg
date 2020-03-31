@@ -9,9 +9,29 @@
 
 #include "matrix.h"
 
-#define N 10
+#define N 10000
 
 #define DATA_SIZE ((2 * N) + 1)
+
+void alloc_work_array(float **work_array)
+{
+	(*work_array) = malloc(sizeof(float) * DATA_SIZE);
+}
+
+void free_work_array(float **work_array)
+{
+	free((*work_array));
+}
+
+void alloc_result_array(float ***result_array, int size)
+{
+	(*result_array) = calloc(sizeof(float*), (size - 1));
+}
+
+void free_result_array(float ***result_array, int size)
+{
+	free((*result_array));
+}
 
 void prepare_data(size_t i, size_t j, fmatrix_t A, fmatrix_t L, fmatrix_t U, float *data)
 {
@@ -35,19 +55,42 @@ void prepare_data(size_t i, size_t j, fmatrix_t A, fmatrix_t L, fmatrix_t U, flo
 	data[DATA_SIZE-1] = at_i_j(A,i,j);
 }
 
-void send_work(size_t i, size_t j, fmatrix_t A, fmatrix_t L, fmatrix_t U, float *data, float **resultats, MPI_Status status, char matrix)
+int find_work(float **result_array, int left, int right)
 {
-	// receptionne le message avec le destinataire
-	MPI_Recv(NULL, 0, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	if(left == right){
+		return (result_array[left] == NULL) ? left : -1;
+	}else{
+		int pivot = left + (right - left)/2, res = -1;
 
+		if((res = find_work(result_array, left, pivot)) != -1){
+			return res;
+		}else if((res = find_work(result_array, pivot + 1, right)) != -1){
+			return res;
+		}else{
+			return -1;
+		}
+	}
+}
+
+void send_work(size_t i, size_t j, fmatrix_t A, fmatrix_t L, fmatrix_t U, float *data, float **resultats, int dest, char matrix)
+{
 	// prépare le travail pour le destinataire
 	prepare_data(i, j, A, L, U, data);
 
 	// envoie le travail au destinataire
-	MPI_Send(data, DATA_SIZE, MPI_FLOAT, status.MPI_SOURCE, matrix, MPI_COMM_WORLD);
+	MPI_Send(data, DATA_SIZE, MPI_FLOAT, dest+1, matrix, MPI_COMM_WORLD);
 				
 	// sauvegarde de la ou doit etre ecrit le resultat
-	resultats[status.MPI_SOURCE-1] = (matrix) ? &at_i_j(L,i,j) : &at_i_j(U,i,j);	
+	resultats[dest] = (matrix) ? &at_i_j(L,i,j) : &at_i_j(U,i,j);	
+}
+
+void receive_result(float **result_array, MPI_Status status)
+{
+	// receptionne le message avec le destinataire
+	MPI_Recv(result_array[status.MPI_SOURCE-1], 1, MPI_FLOAT, status.MPI_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			
+	// remise à zero des resultats
+	result_array[status.MPI_SOURCE-1] = NULL;
 }
 
 void wait_work(int size, float **resultats)
@@ -63,23 +106,25 @@ void wait_work(int size, float **resultats)
 	}
 }
 
-void receive_result(float **resultats, MPI_Status status)
-{
-	// receptionne le message avec le destinataire
-	MPI_Recv(resultats[status.MPI_SOURCE-1], 1, MPI_FLOAT, status.MPI_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			
-	// remise à zero
-	resultats[status.MPI_SOURCE-1] = NULL;
-}
-
-
-
 void master(int rang, int size)
 {
+	// creation du tableau de resultats //
+	float **result_array;
+	alloc_result_array(&result_array, size);
+
+	// creation du tableau de travail
+	float *work_array;
+	alloc_work_array(&work_array);
+
+	// processus esclave destinataire 	//
+	int dest = -1;
+
+	//flag, requete et status pour la reception de resultats //
+	MPI_Request request;
 	MPI_Status status;
-	float *data = malloc(sizeof(float) * DATA_SIZE);
-	float **resultats = calloc((size-1), sizeof(float*));
-	int dest = 0;
+	int flag = 0;
+
+	// Initialisation des matrices	//
 	fmatrix_t A, L, U, R;
 
 	construct_fmatrix(A, N, N);
@@ -87,59 +132,58 @@ void master(int rang, int size)
 	construct_fmatrix(U, N, N);
 	construct_fmatrix(R, N, N);
 
-
 	rand_matrix(A);
-/*
-	fprintf(stderr, "Matrice A:\n");
-	print_matrix(A);
-	
-	fprintf(stderr, "Matrice R:\n");
-	print_matrix(R);
-*/
+
+	// Algorithme
 	for(size_t i = 0; i < N; i++){
-		// Travail pour U
+		// Travail pour U 	//
 		for(size_t j = i; j < N;){
-			// Attente de message			
-			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			// préparation du travail et envoi si necessaire	//
+			while((dest = find_work(result_array, 0, size-2)) != -1 && j < N){
+				send_work(i, j, A, L, U, work_array, result_array, dest, 0);
+				j++;
+			}			
 
-			// Demande de travail
-			if(status.MPI_TAG == 0){
-				send_work(i, j, A, L, U, data, resultats, status, 0);
-				j = j + 1;
-			}
-
-			// Resultat du travail
-			else{
-				receive_result(resultats, status);
-			}
+			// reception des resultats
+			do{
+				MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+				
+				if(flag)	
+					receive_result(result_array, status);	
+			}while(flag);
 		}
 
-		wait_work(size, resultats);
+		// attente du travail de la ligne	//
+		wait_work(size, result_array);
 
-		// Travail pour L
-		for(size_t j = i; j < N; ){
-			// Attente de message			
-			MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		// Travail pour L 	//
+		for(size_t j = i; j < N;){
+			// préparation du travail et envoi si necessaire	//
+			while((dest = find_work(result_array, 0, size-2)) != -1 && j < N){
+				send_work(j, i, A, L, U, work_array, result_array, dest, 1);
+				j++;
+			}			
 
-			// Demande de travail
-			if(status.MPI_TAG == 0){
-				send_work(j, i, A, L, U, data, resultats, status, 1);
-				j = j + 1;
-			}
+			// reception des resultats
+			do{
+				MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+				
+				if(flag)	
+					receive_result(result_array, status);	
+			}while(flag);
+		}		
 
-			// Resultat du travail
-			else{
-				receive_result(resultats, status);
-			}		
-		}
-
-		wait_work(size, resultats);
+		// attente du travail de la colonne	//
+		wait_work(size, result_array);
 	}
 
+	// envoi du message de sortie a tous les esclaves
 	for(size_t i = 1; i < size; i++){
 		MPI_Send(NULL, 0, MPI_INT, i, 2, MPI_COMM_WORLD);			
 	}
 
+/*
+	// libération et affichage des matrices
 	fprintf(stderr, "\n");
 	
 	print_matrix(L);
@@ -152,10 +196,14 @@ void master(int rang, int size)
 	free_matrix(L);
 	free_matrix(U);
 	free_matrix(R);
+*/
 
-	free(data);
+	// liberation du tableau de resultats //
+	free_result_array(&result_array, size);
+
+	// creation du tableau de travail
+	free_work_array(&work_array);
 }
-
 
 void print_data(const float * data, int rang, int flag)
 {
@@ -215,9 +263,6 @@ void slave(int rang, int size)
 	float res = 0;
 
 	while(1){
-		// Demande de travail à 0
-		MPI_Send(NULL, 0, MPI_INT, 0, 0, MPI_COMM_WORLD);
-
 		MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
 		// Travail sur U
@@ -227,10 +272,6 @@ void slave(int rang, int size)
 			res = data[DATA_SIZE-1];
 
 			compute_U(&res, data);
-
-			//print_data(data, rang, status.MPI_TAG);
-
-			//sleep(0.1);			
 		
 			MPI_Send(&res, 1, MPI_FLOAT, 0, 1, MPI_COMM_WORLD);
 		}
@@ -242,10 +283,6 @@ void slave(int rang, int size)
 			res = data[DATA_SIZE-1];
 
 			compute_L(&res, data);
-
-			//print_data(data, rang, status.MPI_TAG);
-
-			//sleep(0.1);
 
 			MPI_Send(&res, 1, MPI_FLOAT, 0, 1, MPI_COMM_WORLD);
 		}
@@ -262,7 +299,6 @@ void slave(int rang, int size)
 
 	free(data);
 }
-
 
 int main(int argc, char *argv[])
 {

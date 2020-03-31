@@ -1,5 +1,4 @@
-#include <stdlib.h>
-#include <math.h>
+#include <stdio.h>
 
 #include "fact_alg.h"
 
@@ -9,8 +8,10 @@ void factLU_Doolittle(fmatrix_t A, fmatrix_t L, fmatrix_t U)
 		for(size_t k = i; k < A.n; k++){
 			float sum = 0;
 			for(size_t j = 0; j < i; j++){
+				printf("calcul de U -- i=%zu k=%zu j=%zu -> L[%zu][%zu](%f) * U[%zu][%zu](%f)\n", i, k, j, i, j, at_i_j(L,i,j), j, k, at_i_j(U, j, k));
 				sum += (at_i_j(L,i,j) * at_i_j(U, j, k));
 			}
+			printf("calcul de U -- A[%zu][%zu](%f)\n\n", i, k, at_i_j(A,i,k));
 			at_i_j(U,i,k) = at_i_j(A,i,k) - sum;
 		}
 		for(size_t k = i; k < A.n; k++){
@@ -19,10 +20,12 @@ void factLU_Doolittle(fmatrix_t A, fmatrix_t L, fmatrix_t U)
 			}else{
 				float sum = 0;
 				for(size_t j = 0; j < i; j++){
+					printf("calcul de L -- i=%zu k=%zu j=%zu -> L[%zu][%zu](%f) * U[%zu][%zu](%f)\n", i, k, j, k, j, at_i_j(L, k, j), j, i, at_i_j(U, j, i));
 					sum += (at_i_j(L, k, j) * at_i_j(U, j, i));
 				}
+				printf("calcul de L -- A[%zu][%zu](%f) - sum / U[%zu][%zu](%f)\n\n", k, i, at_i_j(A,k,i), i, i, at_i_j(U,i,i));
 				at_i_j(L, k, i) = (at_i_j(A,k,i) - sum) / at_i_j(U,i,i);
-			}
+			}	
 		}
 	}
 }
@@ -33,7 +36,6 @@ void factLU_Crout(fmatrix_t A, fmatrix_t L, fmatrix_t U)
 		at_i_j(U,i,i) = 1;
 	}
 	for(size_t j = 0; j < A.n; j++){
-		// Lower triangular
 		for(size_t i = j; i < A.n; i++){
 			float sum = 0;
 			for(size_t k = 0; k < j; k++){
@@ -41,7 +43,6 @@ void factLU_Crout(fmatrix_t A, fmatrix_t L, fmatrix_t U)
 			}
 			at_i_j(L,i,j) = at_i_j(A,i,j) - sum;
 		}
-		// Upper Triangular
 		for(size_t i = j; i < A.n; i++){
 			float sum = 0; 
 			for(size_t k = 0; k < j; k++){

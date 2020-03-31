@@ -1,6 +1,8 @@
 #ifndef FACT_ALG_H
 #define FACT_ALG_H
 
+#include <stdlib.h>
+#include <math.h>
 #include "matrix.h"
 
 void factLU_Doolittle(fmatrix_t A, fmatrix_t L, fmatrix_t U);

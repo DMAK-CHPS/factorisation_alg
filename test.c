@@ -7,7 +7,6 @@
 
 int main(int argc, char const *argv[])
 {
-/*
 	fmatrix_t A, L, U;
 
 	construct_fmatrix(A, 3, 3);
@@ -31,7 +30,7 @@ int main(int argc, char const *argv[])
 	print_matrix(L);
 	print_matrix(U);
 
-	//factLU_Doolittle(A,L,U);
+	factLU_Doolittle(A,L,U);
 	//factLU_Crout(A,L,U);
 
 	mult_matrix(L, U, A);
@@ -44,6 +43,7 @@ int main(int argc, char const *argv[])
 	free_matrix(L);
 	free_matrix(U);
 
+/*
 	fmatrix_t A, Q, R;
 
 	construct_fmatrix(A, 3, 3);
@@ -78,7 +78,7 @@ int main(int argc, char const *argv[])
 	free_matrix(A);
 	free_matrix(Q);
 	free_matrix(R);
-*/
+
 
 	fmatrix_t A, L, D;
 
@@ -113,5 +113,6 @@ int main(int argc, char const *argv[])
 	free_matrix(L);
 	free_matrix(D);
 
+*/
 	return 0;
 }

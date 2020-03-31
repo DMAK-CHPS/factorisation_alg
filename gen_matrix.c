@@ -35,9 +35,6 @@ int main(int argc, char const *argv[])
 
 	FILE *f = fopen(argv[1], "wr");
 
-	fwrite(&n, sizeof(size_t), 1, f);
-	fwrite(&m, sizeof(size_t), 1, f);
-
 	for(size_t i = 0; i < (n*m); i++){
 		float alea = float_rand(low, big);
 		fwrite(&alea, sizeof(float), 1, f);		
@@ -70,9 +67,6 @@ int main(int argc, char const *argv[])
 	double big = atolf(argv[5]);
 
 	FILE *f = fopen(argv[1], "wr");
-
-	fwrite(&n, sizeof(size_t), 1, f);
-	fwrite(&m, sizeof(size_t), 1, f);
 
 	for(size_t i = 0; i < (n*m); i++){
 		double alea = double_rand(low, big);
