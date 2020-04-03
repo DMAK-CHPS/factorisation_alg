@@ -12,35 +12,64 @@ filename, n, cond = sys.argv[1], int(sys.argv[2]), float(sys.argv[3])
 
 ''' Premiere etape: generer les valeurs propres avec max(|valeurs propres| - min(|valeurs propres| = cond))'''
 
-eig_min = random.uniform(0, 10 * cond + 10)
+sing_min = random.uniform(0, 10 * cond + 10)
 
-eig_max = cond * eig_min
+sing_max = cond * sing_min
 
-print(eig_min, eig_max, eig_max/eig_min)
+print(sing_min, sing_max, sing_max/sing_min)
 
 M = np.zeros((n,n))
 
 for i in range(n):
-	M[i,i] = random.uniform(eig_min,eig_max)
+	M[i,i] = random.uniform(sing_min,sing_max)
 
 i, j =  random.randrange(0, math.floor((n-1)/2)), random.randrange(math.floor((n-1)/2) + 1, n-1)
-M[i,i] = eig_min
-M[j,j] = eig_max
+M[i,i] = sing_min
+M[j,j] = sing_max
 
-print("--------------- valeurs propres a la generation ---------------")
+print("--------------- valeurs singulieres a la generation ---------------")
 print(M)
 
-''' Seconde etape: generer la matrice de vecteurs propres '''
+''' Seconde etape: generer les matrices de vecteurs propres '''
 
-S = np.random.random((n,n)) 
-S = S * 1000 - 500
+U = np.zeros((n,n))
+k = math.sqrt(1/n)
+U[0] = np.ones((1,n)) * k
+for i in range(1,n):
+	aux = np.zeros((1,n))
+	for j in range(n):
+		if j < i:
+			aux[0,j] = 1
+		elif j == i: 
+			aux[0,j] = -j
+		else:
+			aux[0,j] = 0
+	U[i] = aux/np.linalg.norm(aux)
 
-print("--------------- vecteurs propres a la generation---------------")
-print(S)
+V = np.zeros((n,n))
+k = math.sqrt(1/n)
+V[0] = np.ones((1,n)) * k
+for i in range(1,n):
+	aux = np.zeros((1,n))
+	for j in range(n):
+		if j < i:
+			aux[0,j] = 1
+		elif j == i: 
+			aux[0,j] = -j
+		else:
+			aux[0,j] = 0
+	V[i] = aux/np.linalg.norm(aux)
 
-''' troisieme etape: generer lamatrice finale '''
+print("--------------- vecteurs propres de U a la generation---------------")
+print(U)
 
-A = S @ M @ np.linalg.inv(S);
+print("--------------- vecteurs propres de V a la generation---------------")
+print(V)
+
+''' troisieme etape: generer la matrice finale '''
+
+A = U @ M @ V
+
 
 print("--------------- matrice finale ---------------")
 print(A)
@@ -48,12 +77,16 @@ print(A)
 ''' quatrième étape on verifie le resultat '''
 
 print("--------------- conditionnement ---------------")
-print(np.linalg.cond(A, -np.inf))
-eigenvalues, eigenvectors = np.linalg.eig(A)
-print("--------------- vecteurs propres ---------------")
-print(eigenvectors)
-print("--------------- valeurs propres ---------------")
-print(eigenvalues)
+print(np.linalg.cond(A))
+print(np.linalg.norm(A))
+u, s, v = np.linalg.svd(A)
+print("--------------- u ---------------")
+print(u)
+print("--------------- s ---------------")
+print(s)
+print("--------------- v ---------------")
+print(v)
+
 
 ''' cinquieme étape on ecrit le resultat dans le fichier '''
 f = open(filename, 'wb')
