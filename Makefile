@@ -1,23 +1,34 @@
-all: fact_alg.o test.c matrix.h 
-	gcc -o test test.c fact_alg.o -lm
+all: common sequential mpi
 
-fact_alg.o : fact_alg.c fact_alg.h matrix.h
-	gcc -c fact_alg.c -o fact_alg.o -lm
+common: common/MPI_IO.o common/MPI_IO.h common/matrix.h common/gen_matrix.c
+	echo "common compilation done"
 
-doolittle: doolittle.c matrix.h
-	mpicc doolittle.c -o doolittle -lm
+sequential:	sequential/fact_alg.o test 	
+	echo "sequential compilation done"
 
-gaussLU: gaussLU.c matrix.h
-	mpicc gaussLU.c -o gaussLU -lm
+mpi: mpi/doolittle mpi/gaussLU 
+	echo "mpi compilation done"
 
-MPI_IO.o:	MPI_IO.c MPI_IO.h
-	mpicc -c MPI_IO.c -o MPI_IO.o -lm
+test: sequential/fact_alg.o sequential/test.c common/matrix.h 
+	gcc -o sequential/test sequential/test.c sequential/fact_alg.o -lm
 
-test_IO: test_IO.c MPI_IO.o
-	mpicc -o test_IO test_IO.c MPI_IO.o -lm
+sequential/fact_alg.o : sequential/fact_alg.c sequential/fact_alg.h common/matrix.h
+	gcc -c sequential/fact_alg.c -o sequential/fact_alg.o -lm
 
-gen_matrix: gen_matrix.c 
-	gcc gen_matrix.c -o gen_matrix 
+mpi/doolittle: mpi/doolittle.c common/matrix.h
+	mpicc mpi/doolittle.c -o mpi/doolittle -lm
+
+mpi/gaussLU: mpi/gaussLU.c common/matrix.h common/MPI_IO.o common/MPI_IO.h
+	mpicc mpi/gaussLU.c common/MPI_IO.o -o mpi/gaussLU -lm
+
+common/MPI_IO.o: common/MPI_IO.c common/MPI_IO.h
+	mpicc -c common/MPI_IO.c -o common/MPI_IO.o -lm
+
+test_IO: common/test_IO.c common/MPI_IO.o common/MPI_IO.h
+	mpicc -o common/test_IO common/test_IO.c common/MPI_IO.o -lm
+
+common/gen_matrix: common/gen_matrix.c 
+	gcc common/gen_matrix.c -o common/gen_matrix 
 
 clean: 
-	rm -f matrix test fact_alg.o doolittle gaussLU gen_matrix test_IO
+	rm -f common/matrix sequential/test sequential/fact_alg.o common/MPI_IO.o mpi/doolittle mpi/gaussLU common/gen_matrix common/test_IO
