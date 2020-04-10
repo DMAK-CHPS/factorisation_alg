@@ -5,63 +5,35 @@
 
 int main(int argc, char const *argv[])
 {
-	int n = 4;
+	if(argc < 2){
+		fprintf(stderr, "./main [matrix size]\n");
+		abort();
+	}
+
+	FILE *fa = fopen("A", "r");
+	FILE *fl = fopen("L", "w");
+	FILE *fu = fopen("U", "w");
+
+	int n = atoi(argv[1]);
 	double *A = calloc(n*n, sizeof(double));
 	double *L = calloc(n*n, sizeof(double));
 	double *U = calloc(n*n, sizeof(double));
-	double *res = calloc(n*n, sizeof(double));
 
-	for(int i = 0; i < n*n; i++){
-		A[i] = i+1;
-	}
+	fread(A, sizeof(double), n*n, fa);
 
 	fact_crout(A, L, U, n);
 
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < n; j++){
-			for(int k = 0; k < n; k++){
-				res[i*n+j] += L[i*n+k] * U[k*n+j];
-			}
-		}
-	}
+	fwrite(L, sizeof(double), n*n, fl);
 
-	printf("A=\n");
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < n; j++){
-			printf("%lf ", A[i*n+j]);
-		}
-		printf("\n");
-	}
-
-	printf("L=\n");
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < n; j++){
-			printf("%lf ", L[i*n+j]);
-		}
-		printf("\n");
-	}
-
-
-	printf("U=\n");
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < n; j++){
-			printf("%lf ", U[i*n+j]);
-		}
-		printf("\n");
-	}
-
-	printf("RES=\n");
-	for(int i = 0; i < n; i++){
-		for(int j = 0; j < n; j++){
-			printf("%lf ", res[i*n+j]);
-		}
-		printf("\n");
-	}
+	fwrite(U, sizeof(double), n*n, fu);
 
 	free(A);
 	free(L);
 	free(U);
-	free(res);
+
+	fclose(fa);
+	fclose(fl);
+	fclose(fu);
 
 	return 0;
 }
