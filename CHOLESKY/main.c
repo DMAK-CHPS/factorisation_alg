@@ -4,6 +4,32 @@
 
 int main(int argc, char const *argv[])
 {
+
+	if(argc < 2){
+		fprintf(stderr, "./main [matrix size]\n");
+		abort();
+	}
+
+	FILE *fa = fopen("A", "r");
+	FILE *fl = fopen("L", "w");
+
+	int n = atoi(argv[1]);
+	double *A = calloc(n*n, sizeof(double));
+	double *L = calloc(n*n, sizeof(double));
+
+	fread(A, sizeof(double), n*n, fa);
+
+	fact_cholesky(A, L, n);
+
+	fwrite(L, sizeof(double), n*n, fl);
+
+	free(A);
+	free(L);
+
+	fclose(fa);
+	fclose(fl);
+
+	/*
 	int n = 4;
 	double *A = calloc(n*n, sizeof(double));
 	double *L = calloc(n*n, sizeof(double));
@@ -23,7 +49,6 @@ int main(int argc, char const *argv[])
 			}
 		}
 	}
-
 
 	printf("A=\n");
 	for(int i = 0; i < n; i++){
@@ -53,6 +78,7 @@ int main(int argc, char const *argv[])
 	free(L);
 	free(res);	
 
+*/
 
 	return 0;
 }

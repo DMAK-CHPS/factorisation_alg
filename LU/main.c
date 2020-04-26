@@ -22,6 +22,7 @@ int main(int argc, char const *argv[])
 	fread(A, sizeof(double), n*n, fa);
 
 	fact_crout(A, L, U, n);
+	//fact_doolittle(A, L, U, n);
 
 	fwrite(L, sizeof(double), n*n, fl);
 

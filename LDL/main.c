@@ -4,13 +4,38 @@
 
 int main(int argc, char const *argv[])
 {
-	int n = 4;
+	if(argc < 2){
+		fprintf(stderr, "./main [matrix size]\n");
+		abort();
+	}
+
+	FILE *fa = fopen("A", "r");
+	FILE *fl = fopen("L", "w");
+	FILE *fd = fopen("D", "w");
+
+	int n = atoi(argv[1]);
 	double *A = calloc(n*n, sizeof(double));
 	double *L = calloc(n*n, sizeof(double));
 	double *D = calloc(n*n, sizeof(double));
-	double *r = calloc(n*n, sizeof(double));
-	double *res = calloc(n*n, sizeof(double));
 
+	fread(A, sizeof(double), n*n, fa);
+
+	fact_ldl(A, L, D, n);
+
+	fwrite(L, sizeof(double), n*n, fl);
+
+	fwrite(D, sizeof(double), n*n, fd);
+
+	free(A);
+	free(L);
+	free(D);
+
+	fclose(fa);
+	fclose(fl);
+	fclose(fd);
+
+
+/*
 
 	A[0] = 1, A[1] = 1, A[2] = 1, A[3] = 1;
 	A[4] = 1, A[5] = 5, A[6] = 5, A[7] = 5;
@@ -75,4 +100,6 @@ int main(int argc, char const *argv[])
 	free(res);
 
 	return 0;
+
+*/
 }

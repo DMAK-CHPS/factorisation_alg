@@ -1,11 +1,11 @@
 main: fact_svd.o fact_svd.h main.c solve_svd.o
-	gcc -o main main.c fact_svd.o solve_svd.o -Wall -lm
+	verificarlo -o main main.c fact_svd.o solve_svd.o -Wall -lm
 
 fact_svd.o: fact_svd.c fact_svd.h
-	gcc -c fact_svd.c -o fact_svd.o -Wall -lm
+	verificarlo -c fact_svd.c -o fact_svd.o -Wall -lm
 
 solve_svd.o: solve_svd.c solve_svd.h
-	gcc -c solve_svd.c -o solve_svd.o -Wall -lm
+	verificarlo -c solve_svd.c -o solve_svd.o -Wall -lm
 
 clean:
-	rm -f solve_svd.o fact_svd.o main
+	rm -f main.o solve_svd.o fact_svd.o main .vfcwrapper.o main.1.ll main.2.ll fact_svd.1.ll fact_svd.2.ll solve_svd.1.ll solve_svd.2.ll 

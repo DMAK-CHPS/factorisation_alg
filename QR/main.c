@@ -1,10 +1,41 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "fact_schmidt.h"
-#include "fact_householder.h"
 
 int main(int argc, char const *argv[])
 {
+
+	if(argc < 2){
+		fprintf(stderr, "./main [matrix size]\n");
+		abort();
+	}
+
+	FILE *fa = fopen("A", "r");
+	FILE *fq = fopen("Q", "w");
+	FILE *fr = fopen("R", "w");
+
+	int n = atoi(argv[1]);
+	double *A = calloc(n*n, sizeof(double));
+	double *Q = calloc(n*n, sizeof(double));
+	double *R = calloc(n*n, sizeof(double));
+
+	fread(A, sizeof(double), n*n, fa);
+
+	fact_schmidt(A, Q, R, n);
+
+	fwrite(Q, sizeof(double), n*n, fq);
+
+	fwrite(R, sizeof(double), n*n, fr);
+
+	free(A);
+	free(Q);
+	free(R);
+
+	fclose(fa);
+	fclose(fq);
+	fclose(fr);
+
+	/*
 	int n = 4;
 	double *A = calloc(n*n, sizeof(double));
 	double *Q = calloc(n*n, sizeof(double));
@@ -67,4 +98,6 @@ int main(int argc, char const *argv[])
 
 
 	return 0;
+
+	*/
 }
