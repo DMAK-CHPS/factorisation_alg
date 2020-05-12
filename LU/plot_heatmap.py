@@ -16,7 +16,11 @@ n, it, n_it = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
 
 DELTA = np.fromfile("MATRIX", dtype=np.float64).reshape(n, n)
 
-DELTA = DELTA / n_it
+for i in range(n):
+	for j in range(n):
+		DELTA[i,j] = round(DELTA[i,j] / n_it, 8)
+
+#DELTA = np.round(DELTA / n_it, 8)
 
 sns.heatmap(DELTA, cmap="YlOrRd")
 

@@ -70,6 +70,8 @@ for i in range(1,n):
 
 A = U @ M @ V
 
+A = A @ A.transpose()
+
 
 #print("--------------- matrice finale ---------------")
 #print(A)

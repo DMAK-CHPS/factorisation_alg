@@ -36,13 +36,14 @@ X = np.fromfile("X", dtype=np.float64).reshape(n)
 B = np.fromfile("B", dtype=np.float64).reshape(n)
 RES = np.linalg.solve(A,B)
 
-DELTA = np.abs(X - RES)
-
 sum = 0
 
+DELTA = np.zeros(n)
+
 for i in range(n):
+	DELTA[i] = abs((RES[i]-X[i])/RES[i])
 	sum += DELTA[i]
-		
+
 avg = sum/n
 
 """ mise a jour des données de la matrice """

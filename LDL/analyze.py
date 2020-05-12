@@ -36,19 +36,21 @@ L = np.fromfile("L", dtype=np.float64).reshape(n, n)
 D = np.fromfile("D", dtype=np.float64).reshape(n, n)
 RES = L @ D @ L.transpose()
 
-DELTA = np.abs(A - RES)
-
 sum = 0
+
+DELTA = np.zeros((n,n))
 
 for i in range(n):
 	for j in range(n):
+		if A[i,j] != 0:
+			DELTA[i,j] = abs((A[i,j]-RES[i,j])/A[i,j])
 		sum += DELTA[i,j]
 avg = sum/(n*n)
 
 """ mise a jour des données de la matrice """
 if os.path.isfile('MATRIX'):
 	DD = np.fromfile("MATRIX", dtype=np.float64).reshape(n, n);
-	DELTA = DELTA + DD
+	DELTA = DD + DELTA
 f = open("MATRIX", 'wb')
 for i in range(n):
 	for j in range(n):

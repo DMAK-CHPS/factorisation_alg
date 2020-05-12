@@ -3,20 +3,24 @@ import random
 import math
 import sys
 import struct
+import scipy.stats as sc
 
 if len(sys.argv) < 4:
-	print("gen_cond_matrix [filename] [matrix size] [conditioning number]")
+	print("gen_cond_matrix [filename] [matrix size] [conditioning number] [optional: scale]")
 	exit()
 
 filename, n, cond = sys.argv[1], int(sys.argv[2]), float(sys.argv[3])
 
+if len(sys.argv) == 5:
+	scale = float(sys.argv[4])
+else:
+	scale = 1000.0
+
 ''' Premiere etape: generer les valeurs propres avec max(|valeurs propres| - min(|valeurs propres| = cond))'''
 
-sing_min = random.uniform(0, 10 * cond + 10)
+sing_max = random.uniform(0, scale)
 
-sing_max = cond * sing_min
-
-#print(sing_min, sing_max, sing_max/sing_min)
+sing_min = sing_max / cond
 
 M = np.zeros((n,n))
 
@@ -27,10 +31,10 @@ i, j =  random.randrange(0, math.floor((n-1)/2)), random.randrange(math.floor((n
 M[i,i] = sing_min
 M[j,j] = sing_max
 
-#print("--------------- valeurs singulieres a la generation ---------------")
-#print(M)
 
 ''' Seconde etape: generer les matrices de vecteurs propres '''
+
+#U  = sc.ortho_group.rvs(n)
 
 U = np.zeros((n,n))
 k = math.sqrt(1/n)
@@ -46,49 +50,17 @@ for i in range(1,n):
 			aux[0,j] = 0
 	U[i] = aux/np.linalg.norm(aux)
 
-V = np.zeros((n,n))
-k = math.sqrt(1/n)
-V[0] = np.ones((1,n)) * k
-for i in range(1,n):
-	aux = np.zeros((1,n))
-	for j in range(n):
-		if j < i:
-			aux[0,j] = 1
-		elif j == i: 
-			aux[0,j] = -j
-		else:
-			aux[0,j] = 0
-	V[i] = aux/np.linalg.norm(aux)
-
-#print("--------------- vecteurs propres de U a la generation---------------")
-#print(U)
-
-#print("--------------- vecteurs propres de V a la generation---------------")
-#print(V)
+V = U.transpose()
 
 ''' troisieme etape: generer la matrice finale '''
 
 A = U @ M @ V
 
+if round(np.linalg.cond(A),2) != cond:
+	print("error conditioning")
+	exit()
 
-#print("--------------- matrice finale ---------------")
-#print(A)
-
-''' quatrième étape on verifie le resultat '''
-
-#print("--------------- conditionnement ---------------")
-#print(np.linalg.cond(A))
-#print(np.linalg.norm(A))
-u, s, v = np.linalg.svd(A)
-#print("--------------- u ---------------")
-#print(u)
-#print("--------------- s ---------------")
-#print(s)
-#print("--------------- v ---------------")
-#print(v)
-
-
-''' cinquieme étape on ecrit le resultat dans le fichier '''
+''' quatrième étape on ecrit le resultat dans le fichier '''
 f = open(filename, 'wb')
 for i in range(n):
 	for j in range(n):
